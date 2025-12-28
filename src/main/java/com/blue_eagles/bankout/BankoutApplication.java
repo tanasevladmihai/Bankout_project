@@ -1,0 +1,13 @@
+package com.blue_eagles.bankout;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class BankoutApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(BankoutApplication.class, args);
+    }
+
+}
