@@ -16,7 +16,6 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            /* Changed to min-height for longer forms */
             color: #000;
             padding: 40px 0;
         }
@@ -28,13 +27,9 @@
             padding: 20px;
         }
 
-        .logo {
-            font-size: 48px;
-            /* Slightly smaller for the long form */
-            font-weight: 700;
-            color: #8da18d;
-            margin-bottom: 5px;
-            letter-spacing: -2px;
+        .logo img{
+            width: 500px;
+            height: 200px;
         }
 
         .welcome-text {
@@ -55,7 +50,6 @@
             font-weight: 600;
         }
 
-        /* Form Grid - Two columns for a cleaner look */
         .form-group {
             text-align: left;
             margin-bottom: 15px;
@@ -108,7 +102,7 @@
 
 <body>
     <div class="register-container">
-        <div class="logo">Bankout</div>
+        <div class="logo"><img src="logo.jpeg"></div>
         <div class="welcome-text">Create Account</div>
         <div class="sub-text">
             Already registered? <a href="loginmenu.html">Login</a>
@@ -152,9 +146,8 @@
     <script>
         async function handleRegister() {
             const errorDiv = document.getElementById('reg-error-msg');
-            errorDiv.innerText = ""; // Clear old errors
+            errorDiv.innerText = "";
 
-            // 1. Collect all data from the form
             const registerData = {
                 name: document.getElementById('reg-name').value,
                 username: document.getElementById('reg-username').value,
@@ -164,14 +157,12 @@
                 address: document.getElementById('reg-address').value
             };
 
-            // Simple validation: Check if any field is empty
             if (Object.values(registerData).some(value => value === "")) {
                 errorDiv.innerText = "Please fill in all fields.";
                 return;
             }
 
             try {
-                // 2. Send the POST request to your Java Controller
                 const response = await fetch('http://localhost:8080/auth/register', {
                     method: 'POST',
                     headers: {
@@ -180,15 +171,12 @@
                     body: JSON.stringify(registerData)
                 });
 
-                // 3. Handle the Response
                 if (response.ok) {
-                    // SUCCESS
                     alert("Registration successful! You can now login.");
-                    window.location.href = 'loginmenu.html'; // Redirect to login
+                    window.location.href = 'loginmenu.html';
                 } else {
-                    // ERROR (e.g., Username taken)
                     const errorText = await response.text();
-                    errorDiv.innerText = errorText; // Shows "Error: Username is already taken!"
+                    errorDiv.innerText = errorText;
                 }
             } catch (error) {
                 console.error("Connection error:", error);

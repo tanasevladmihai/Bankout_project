@@ -26,12 +26,9 @@
             padding: 20px;
         }
 
-        .logo {
-            font-size: 64px;
-            font-weight: 700;
-            color: #8da18d;
-            margin-bottom: 5px;
-            letter-spacing: -2px;
+        .logo img{
+            width: 500px;
+            height: 200px;
         }
 
         .welcome-text {
@@ -47,14 +44,13 @@
             line-height: 1.5;
         }
 
-        /* The 2FA Code Input */
         .code-input {
             width: 100%;
             padding: 15px;
-            font-size: 24px; /* Big font for the code */
+            font-size: 24px;
             font-weight: 700;
             text-align: center;
-            letter-spacing: 10px; /* Spaces out the numbers */
+            letter-spacing: 10px;
             border: 2px solid #ccc;
             background-color: #fafafa;
             margin-bottom: 20px;
@@ -87,7 +83,7 @@
 
 <body>
     <div class="verify-container">
-        <div class="logo">Bankout</div>
+        <div class="logo"><img src="logo.jpeg"></div>
         <div class="welcome-text">Check your email</div>
         <div class="sub-text">
             We’ve sent a 6-digit verification code to your email address. 
@@ -105,7 +101,6 @@
     const codeInput = document.getElementById('2fa-code').value;
     const statusMsg = document.getElementById('status-msg');
     
-    // 1. Retrieve the email we saved during the login step
     const email = localStorage.getItem('pendingEmail');
 
     if (!email) {
@@ -114,14 +109,12 @@
         return;
     }
 
-    // 2. Prepare the data for your Verify2FARequest record
     const verifyData = {
         email: email,
         code: codeInput
     };
 
     try {
-        // 3. Call your Java endpoint: /auth/2fa/verify
         const response = await fetch('http://localhost:8080/auth/2fa/verify', {
             method: 'POST',
             headers: {
@@ -133,18 +126,14 @@
         const resultText = await response.text();
 
         if (response.ok) {
-            // SUCCESS
-            statusMsg.style.color = "#28a745"; // Green
+            statusMsg.style.color = "#28a745";
             statusMsg.innerText = "✅ " + resultText;
             
-            // Optional: Clear the email from memory now that we are done
             localStorage.removeItem('pendingEmail');
             
-            // Here is where your colleague can eventually redirect:
-            // setTimeout(() => { window.location.href = 'dashboard.html'; }, 2000);
+            // Redirecting to the main page...
         } else {
-            // ERROR (Invalid code or expired)
-            statusMsg.style.color = "#d9534f"; // Red
+            statusMsg.style.color = "#d9534f";
             statusMsg.innerText = "❌ " + resultText;
         }
     } catch (error) {

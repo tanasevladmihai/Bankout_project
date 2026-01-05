@@ -26,12 +26,9 @@
             padding: 20px;
         }
 
-        .logo {
-            font-size: 64px;
-            font-weight: 700;
-            color: #8da18d;
-            margin-bottom: 5px;
-            letter-spacing: -2px;
+        .logo img{
+            width: 500px;
+            height: 200px;
         }
 
         .welcome-text {
@@ -114,7 +111,7 @@
 
 <body>
     <div class="login-container">
-        <div class="logo">Bankout</div>
+        <div class="logo"><img src="logo.jpeg"></div>
         <div class="welcome-text">We're glad you're back!</div>
         <div class="sub-text">
             Not registered? <a href="signupmenu.html">Sign up</a>
@@ -138,22 +135,18 @@
 
     <script>
         async function handleLogin() {
-            // 1. Grab data from the input fields
             const emailInput = document.getElementById('login-email').value;
             const passwordInput = document.getElementById('login-password').value;
             const errorDiv = document.getElementById('error-msg');
 
-            // Clear any old error messages
             errorDiv.innerText = "";
 
-            // 2. Prepare the data to match your Java LoginRequest record
             const loginData = {
                 email: emailInput,
                 password: passwordInput
             };
 
             try {
-                // 3. Send the POST request to your Java Controller
                 const response = await fetch('http://localhost:8080/auth/login', {
                     method: 'POST',
                     headers: {
@@ -162,20 +155,14 @@
                     body: JSON.stringify(loginData)
                 });
 
-                // 4. Handle the Response
                 if (response.ok) {
-                    // SUCCESS: Java returned true/200 OK
-                    // We save the email in "localStorage" so the 2FA page knows who is verifying
                     localStorage.setItem('pendingEmail', emailInput);
 
-                    // Redirect to the 2FA page
                     window.location.href = '2fa.html';
                 } else {
-                    // ERROR: Java returned false/401 Unauthorized
                     errorDiv.innerText = "Invalid email or password. Please try again.";
                 }
             } catch (error) {
-                // SERVER IS DOWN: Could not even reach localhost:8080
                 console.error("Connection error:", error);
                 errorDiv.innerText = "Server is not responding. Is your Spring Boot app running?";
             }
