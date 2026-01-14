@@ -2,9 +2,90 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Bankout Dashboard</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+<div class="navbar">
+    <div class="menu-icon">☰</div>
+    <div class="user-icon">👤</div>
+</div>
 
+<div class="dashboard-wrapper">
+    <div class="carousel" id="mainCarousel">
+
+        <div class="slide slide-1">
+            <div class="bankout-logo">Bank<span>out</span></div>
+            <div class="slogan">Save Money like a Pro</div>
+
+            <div class="accounts-card">
+                <div class="card-header" onclick="toggleAccountMenu()">
+                    Accounts <span class="arrow">﹀</span>
+                </div>
+                <div id="accDropdown" class="dropdown-menu">
+                    <div onclick="createNewAccount()">+ Create New</div>
+                </div>
+
+                <div id="accountsList" class="accounts-list">
+                </div>
+            </div>
+        </div>
+
+        <div class="slide slide-2">
+            <div class="bankout-logo">Bank<span>out</span></div>
+            <div class="slogan">Save Money like a Pro</div>
+
+            <div class="report-card">
+                <div class="card-header">
+                    Spending Report <span class="blue-text" id="periodText" onclick="togglePeriodMenu()">monthly ﹀</span>
+                </div>
+                <div id="periodDropdown" class="dropdown-menu" style="left: 200px;">
+                    <div onclick="loadGraph('DAILY')">Daily</div>
+                    <div onclick="loadGraph('WEEKLY')">Weekly</div>
+                    <div onclick="loadGraph('MONTHLY')">Monthly</div>
+                </div>
+                <div class="chart-box">
+                    <canvas id="spendingChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide slide-3">
+            <div class="bankout-logo">Bank<span>out</span></div>
+            <div class="slogan">Save Money like a Pro</div>
+
+            <div class="stores-container" id="storesList">
+            </div>
+        </div>
+
+    </div>
+
+    <div class="dots-container">
+        <span class="dot active" onclick="goToSlide(0)"></span>
+        <span class="dot" onclick="goToSlide(1)"></span>
+        <span class="dot" onclick="goToSlide(2)"></span>
+    </div>
+</div>
+
+<div id="actionModal" class="modal hidden">
+    <div class="modal-content">
+        <h3>Actions</h3>
+        <button class="btn-orange" onclick="showWireIn()">Wire In</button>
+        <button class="btn-orange" onclick="showSendFunds()">Send Funds</button>
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+    </div>
+</div>
+
+<div id="wireInModal" class="modal hidden">
+    <div class="modal-content">
+        <h3>Wire In Money</h3>
+        <input type="number" id="wireAmount" placeholder="Amount">
+        <button class="btn-blue" onclick="submitWireIn()">Confirm</button>
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+    </div>
+</div>
+
+<script src="JS/dashboard.js"></script>
 </body>
 </html>
