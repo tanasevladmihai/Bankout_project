@@ -1,6 +1,7 @@
 let currentSlide = 0;
 let selectedAccountId = null;
 let chartInstance = null;
+let deleteMode = false;
 
 // --- CAROUSEL ---
 function goToSlide(index) {
@@ -27,14 +28,19 @@ async function loadAccounts() {
         accounts.forEach(acc => {
             const div = document.createElement('div');
             div.className = 'account-item';
-            // Note: IntelliJ might flag 'accountNumber', but it is correct if your Java class has it.
+
+            // Logic: If deleteMode is ON, show a Red Delete Button. Otherwise, show "•••"
+            let actionHtml = deleteMode
+                ? `<div class="acc-dots" style="color:red; font-weight:bold;" onclick="deleteAccount(${acc.id})">✖ DELETE</div>`
+                : `<div class="acc-dots" onclick="openActionModal(${acc.id})">•••</div>`;
+
             div.innerHTML = `
                 <div>
-                    <div>${acc.accountNumber}</div>
-                    <small>Savings</small>
+                    <div style="font-weight:bold; color:#555;">${acc.accountName || 'General'}</div>
+                    <small style="color:#888;">${acc.accountNumber}</small>
                 </div>
                 <div class="acc-balance">${acc.balance} €</div>
-                <div class="acc-dots" onclick="openActionModal(${acc.id})">•••</div>
+                ${actionHtml}
             `;
             list.appendChild(div);
         });
@@ -166,13 +172,28 @@ function togglePeriodMenu() {
 }
 
 // --- SLIDE 3: STORES ---
+// --- SLIDE 3: STORES & OFFERS ---
 async function loadStores() {
     try {
-        // Fetch REAL data from your backend
-        const res = await fetch('/api/stores');
-        if (!res.ok) throw new Error("Failed to load stores");
+        // 1. Fetch All Stores (with their offers)
+        const storesRes = await fetch('/api/stores');
+        if (!storesRes.ok) throw new Error("Failed to load stores");
+        const stores = await storesRes.json();
 
-        const stores = await res.json();
+        // 2. Fetch User's Claimed Offers (The "Exclusivity" Logic)
+        // Hardcoded user 1 for prototype
+        const myRedemptionsRes = await fetch('/offers/my-redemptions?userId=1');
+        let myRedemptions = [];
+        if (myRedemptionsRes.ok) {
+            myRedemptions = await myRedemptionsRes.json();
+        }
+
+        // Helper: Find if I already have a code for a specific offer ID
+        const getClaimedCode = (offerId) => {
+            const redemption = myRedemptions.find(r => r.offer.id === offerId);
+            return redemption ? redemption.usageCode : null;
+        };
+
         const container = document.getElementById('storesList');
         container.innerHTML = '';
 
@@ -183,14 +204,27 @@ async function loadStores() {
 
         stores.forEach(store => {
             let discountHTML = '';
-            // Backend returns 'offers', make sure to loop over them
+
             if (store.offers && store.offers.length > 0) {
                 store.offers.forEach(offer => {
-                    discountHTML += `
-                        <div class="discount-box" onclick="this.classList.add('claimed'); this.innerText='CODE: BNK-${offer.id}'">
-                            ${offer.title}<br>
-                            <small>${offer.discountValue} Off</small>
-                        </div>`;
+                    const existingCode = getClaimedCode(offer.id);
+
+                    if (existingCode) {
+                        // RENDER CLAIMED STATE (Greyed out, Code visible)
+                        discountHTML += `
+                            <div class="discount-box claimed">
+                                <div style="font-weight:bold; color:#6f935f;">CODE: ${existingCode}</div>
+                                <small>${offer.title}</small>
+                            </div>`;
+                    } else {
+                        // RENDER UNCLAIMED STATE (Clickable)
+                        discountHTML += `
+                            <div class="discount-box" id="offer-box-${offer.id}" onclick="claimOffer(${offer.id})">
+                                <div class="offer-title">${offer.title}</div>
+                                <small>${offer.discountValue} ${offer.discountType || 'OFF'}</small>
+                                <div class="click-reveal">Click to Reveal</div>
+                            </div>`;
+                    }
                 });
             } else {
                 discountHTML = '<div class="discount-box" style="cursor:default; border:none; background:#eee;">No Active Offers</div>';
@@ -199,7 +233,10 @@ async function loadStores() {
             const row = document.createElement('div');
             row.className = 'store-row';
             row.innerHTML = `
-                <img src="https://via.placeholder.com/100x50?text=${store.name.substring(0,3)}" class="store-logo" alt="logo"> 
+                <div style="text-align:center; width: 100px;">
+                     <img src="https://via.placeholder.com/100x50?text=${store.name.substring(0,3)}" class="store-logo" alt="logo">
+                     <div style="font-size:0.8rem; font-weight:bold;">${store.name}</div>
+                </div>
                 <div class="discount-carousel">${discountHTML}</div>
             `;
             container.appendChild(row);
@@ -209,6 +246,108 @@ async function loadStores() {
     }
 }
 
+// Logic to call backend and save to DB
+async function claimOffer(offerId) {
+    try {
+        const res = await fetch(`/offers/${offerId}/redeem?userId=1`, { method: 'POST' });
+
+        if (res.ok) {
+            const redemption = await res.json();
+            const code = redemption.usageCode;
+
+            // Update UI instantly without reloading
+            const box = document.getElementById(`offer-box-${offerId}`);
+            if (box) {
+                box.classList.add('claimed');
+                box.onclick = null; // Remove click listener
+                box.innerHTML = `
+                    <div style="font-weight:bold; color:#6f935f;">CODE: ${code}</div>
+                    <small>Discount Unlocked!</small>
+                `;
+            }
+        } else {
+            alert("Error claiming offer.");
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+function createNewAccount() {
+    // Hide the dropdown menu if it's open
+    document.getElementById('accDropdown').style.display = 'none';
+    // Show the modal
+    document.getElementById('createAccountModal').classList.remove('hidden');
+}
+
+async function submitCreateAccount() {
+    const name = document.getElementById('newAccountName').value;
+    const number = document.getElementById('newAccountNumber').value;
+
+    if (!name || !number) {
+        alert("Please enter both a Title and Account Number.");
+        return;
+    }
+
+    try {
+        const response = await fetch('/accounts/create', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                accountName: name,
+                accountNumber: number
+            })
+        });
+
+        if (response.ok) {
+            alert("Account created successfully!");
+            closeModal();
+            // Clear inputs
+            document.getElementById('newAccountName').value = '';
+            document.getElementById('newAccountNumber').value = '';
+            // Refresh list
+            await loadAccounts();
+        } else {
+            alert("Failed to create account.");
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Error connecting to server.");
+    }
+}
+
+function toggleDeleteMode() {
+    deleteMode = !deleteMode;
+    // Hide the dropdown
+    document.getElementById('accDropdown').style.display = 'none';
+    // Refresh the list to show/hide delete buttons
+    loadAccounts();
+}
+
+async function deleteAccount(id) {
+    if(!confirm("Are you sure? This will delete the account and all its transaction history.")) return;
+
+    try {
+        const res = await fetch(`/accounts/${id}`, { method: 'DELETE' });
+        if(res.ok) {
+            alert("Account deleted.");
+            loadAccounts(); // Refresh list
+        } else {
+            alert("Could not delete account.");
+        }
+    } catch(e) {
+        console.error(e);
+    }
+}
+function confirmDelete() {
+    // Hide the popup first
+    closeModal();
+
+    // Use the global variable 'selectedAccountId' set by openActionModal()
+    if (selectedAccountId) {
+        deleteAccount(selectedAccountId);
+    }
+}
 // INIT
 window.onload = async function() {
     // We use await to ensure one finishing doesn't block the next if it fails

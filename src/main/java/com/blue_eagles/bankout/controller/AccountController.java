@@ -32,6 +32,7 @@ public class AccountController {
         //return accountRepository.save(account);
         Account acc = new Account();
         acc.setAccountNumber(payload.get("accountNumber"));
+        acc.setAccountName(payload.get("accountName"));
         acc.setBalance(BigDecimal.ZERO);
         acc.setUser(userRepository.findById(1L).orElseThrow());
         return accountRepository.save(acc);

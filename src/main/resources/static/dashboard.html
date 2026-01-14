@@ -73,6 +73,9 @@
         <h3>Actions</h3>
         <button class="btn-orange" onclick="showWireIn()">Wire In</button>
         <button class="btn-orange" onclick="showSendFunds()">Send Funds</button>
+        <button class="btn-cancel" style="background-color: #d9534f; color: white; margin-top:10px;" onclick="confirmDelete()">
+            Delete Account
+        </button>
         <button class="btn-cancel" onclick="closeModal()">Cancel</button>
     </div>
 </div>
@@ -96,7 +99,16 @@
         <button class="btn-cancel" onclick="closeModal()">Cancel</button>
     </div>
 </div>
+<div id="createAccountModal" class="modal hidden">
+    <div class="modal-content">
+        <h3>Open New Account</h3>
+        <input type="text" id="newAccountName" placeholder="Account Title (e.g. Savings)" style="width: 100%; padding: 10px; margin-bottom: 10px;">
+        <input type="text" id="newAccountNumber" placeholder="Account Number (IBAN)" style="width: 100%; padding: 10px; margin-bottom: 10px;">
 
+        <button class="btn-blue" onclick="submitCreateAccount()">Create Account</button>
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+    </div>
+</div>
 <script src="JS/dashboard.js"></script>
 </body>
 </html>

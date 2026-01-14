@@ -18,7 +18,7 @@ public class SecurityConfig {
                         // Allow access to static files (css/js) and public HTML pages
                         .requestMatchers("/", "/index.html", "/login.html", "/register.html",
                                 "/verify.html", "/dashboard.html", "/css/**", "/JS/**", "/auth/**",
-                                "/accounts/**", "/reports/**", "/api/**", "/offers/**").permitAll()
+                                "/accounts/**", "/reports/**", "/api/**", "/offers/**", "/admin.html", "/api/stores/create", "/offers/create").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form.disable()); // Disable default login form

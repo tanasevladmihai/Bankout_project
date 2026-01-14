@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
+import java.util.List;
 
 @Entity
 @Data
@@ -20,6 +21,13 @@ public class Account {
     private User user;
 
     private String accountNumber;
+
+    @Column(name = "account_name")
+    private String accountName;
     private BigDecimal balance;
     private Boolean isOpen = true;
+
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore // Prevent infinite recursion in JSON
+    private List<Transaction> transactions;
 }

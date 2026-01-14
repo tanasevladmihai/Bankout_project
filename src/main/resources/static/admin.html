@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bankout Admin</title>
+    <link rel="stylesheet" href="css/styles.css"> <style>
+    body { padding: 40px; background-color: #f4f4f4; }
+    .admin-container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    h2 { color: #556b2f; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
+    .form-section { margin-bottom: 40px; }
+    label { display: block; margin-top: 15px; font-weight: bold; }
+    input, select, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px; }
+    button { background-color: #556b2f; color: white; border: none; padding: 12px 20px; margin-top: 20px; cursor: pointer; font-size: 1rem; border-radius: 5px; }
+    button:hover { background-color: #445525; }
+</style>
+</head>
+<body>
+
+<div class="admin-container">
+    <h1>Bankout Admin Panel</h1>
+    <p><a href="dashboard.html">← Back to Dashboard</a></p>
+
+    <div class="form-section">
+        <h2>Add New Store</h2>
+        <label>Store Name</label>
+        <input type="text" id="storeName" placeholder="e.g. TechWorld">
+
+        <label>Industry</label>
+        <input type="text" id="storeIndustry" placeholder="e.g. Electronics">
+
+        <label>Contact Email</label>
+        <input type="email" id="storeEmail" placeholder="contact@store.com">
+
+        <button onclick="createStore()">Add Store</button>
+    </div>
+
+    <div class="form-section">
+        <h2>Add Discount Offer</h2>
+        <label>Select Store</label>
+        <select id="storeSelect">
+            <option>Loading stores...</option>
+        </select>
+
+        <label>Offer Title</label>
+        <input type="text" id="offerTitle" placeholder="e.g. 20% Off Laptops">
+
+        <label>Description</label>
+        <textarea id="offerDesc" placeholder="Details..."></textarea>
+
+        <label>Discount Value</label>
+        <input type="number" id="offerValue" placeholder="20.00">
+        <label>Discount Type</label>
+        <select id="offerType">
+            <option value="FIXED">Fixed Amount (€)</option>
+            <option value="PERCENTAGE">Percentage (%)</option>
+        </select>
+
+        <label>Expiry Date</label>
+        <input type="date" id="offerDate">
+
+        <button onclick="createOffer()">Add Offer</button>
+    </div>
+</div>
+
+<script src="JS/admin.js"></script>
+</body>
+</html>

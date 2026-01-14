@@ -16,6 +16,10 @@ public class StoreController {
     public List<Store> getAllStores() {
         return storeRepository.findAll();
     }
+    @PostMapping("/create")
+    public Store createStore(@RequestBody Store store) {
+        return storeRepository.save(store);
+    }
 
     // Note: You need a StoreRepository interface created similar to AccountRepository
 }

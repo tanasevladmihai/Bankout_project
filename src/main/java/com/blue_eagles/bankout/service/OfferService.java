@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -20,23 +21,31 @@ public class OfferService {
     @Autowired
     private UserDiscountObtainedRepository redemptionRepository;
 
-    // Step 1: Browse Deals (Find all active offers)
     public List<DiscountOffer> getAllOffers() {
         return offerRepository.findAll();
     }
 
-    // Step 2: Get Coupon (Redeem logic)
+    // Get all codes claimed by this specific user
+    public List<UserDiscountObtained> getUserRedemptions(Long userId) {
+        return redemptionRepository.findByUserId(userId);
+    }
+
     @Transactional
     public UserDiscountObtained redeemOffer(Long userId, Long offerId) {
-        // 1. Validate the offer exists
+        // 1. Check if user already claimed this specific offer
+        Optional<UserDiscountObtained> existing = redemptionRepository.findByUserIdAndOfferId(userId, offerId);
+        if (existing.isPresent()) {
+            return existing.get(); // Return the existing code, don't generate a new one
+        }
+
+        // 2. Validate Offer
         DiscountOffer offer = offerRepository.findById(offerId)
                 .orElseThrow(() -> new RuntimeException("Offer not found"));
 
-        // 2. Create a unique code (Logic from Flow Diagram Step 6)
-        // Generates a string like "BNK-SUMMER-A1B2"
+        // 3. Generate Code
         String uniqueCode = "BNK-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
-        // 3. Save "User + Deal + Code" (Logic from Flow Diagram Step 7)
+        // 4. Save
         UserDiscountObtained redemption = new UserDiscountObtained();
         redemption.setUserId(userId);
         redemption.setOffer(offer);
