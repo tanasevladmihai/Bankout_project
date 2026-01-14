@@ -5,11 +5,12 @@ import com.blue_eagles.bankout.entity.Transaction;
 import com.blue_eagles.bankout.repository.AccountRepository;
 import com.blue_eagles.bankout.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.blue_eagles.bankout.dto.TransferRequest;
 
 import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.util.List;
-
+import com.blue_eagles.bankout.repository.UserRepository;
 import java.util.Map;
 
 @RestController
@@ -17,8 +18,9 @@ import java.util.Map;
 public class AccountController {
     @Autowired private AccountRepository accountRepository;
     @Autowired private TransactionRepository transactionRepository;
+    @Autowired private UserRepository userRepository;
 
-    @GetMapping("/my_accounts")
+    @GetMapping("/my-accounts")
     public List<Account> getAccounts() {
         // In a real app, filter by the currently logged-in user
 
@@ -31,6 +33,7 @@ public class AccountController {
         Account acc = new Account();
         acc.setAccountNumber(payload.get("accountNumber"));
         acc.setBalance(BigDecimal.ZERO);
+        acc.setUser(userRepository.findById(1L).orElseThrow());
         return accountRepository.save(acc);
     }
 
@@ -60,9 +63,10 @@ public class AccountController {
     public void sendFunds(@RequestBody Map<String, Object> payload) {
         Long accountId = Long.valueOf(payload.get("accountId").toString());
         BigDecimal amount = new BigDecimal(payload.get("amount").toString());
-        String recipient = (String) payload.get("recipientName");
+        String recipientName = (String) payload.get("recipientName");
+        String recipientIban = (String) payload.get("recipientIban");
 
-        Account acc = accountRepository.findById(accountId).orElseThrow();
+        Account acc = accountRepository.findById(accountId).orElseThrow(() -> new RuntimeException("Account not found"));
         // Check balance
         if (acc.getBalance().compareTo(amount) < 0) {
             throw new RuntimeException("Insufficient funds");
@@ -75,7 +79,7 @@ public class AccountController {
         t.setAccount(acc);
         t.setAmount(amount.negate()); // Negative for expense
         t.setTransactionType("TRANSFER");
-        t.setDescription("Transfer to " + recipient);
+        t.setDescription("Transfer to " + recipientName + " (" + recipientIban + ")");
         transactionRepository.save(t);
     }
 }

@@ -1,6 +1,7 @@
 package com.blue_eagles.bankout.dto;
 import lombok.Data;
 
+
 @Data
 public class TransferRequest {
     private Long accountId;

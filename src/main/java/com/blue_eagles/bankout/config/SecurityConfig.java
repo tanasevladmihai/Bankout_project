@@ -16,7 +16,9 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         // Allow access to static files (css/js) and public HTML pages
-                        .requestMatchers("/", "/index.html", "/login.html", "/register.html", "/verify.html", "/dashboard.html", "/css/**", "/JS/**", "/auth/**").permitAll()
+                        .requestMatchers("/", "/index.html", "/login.html", "/register.html",
+                                "/verify.html", "/dashboard.html", "/css/**", "/JS/**", "/auth/**",
+                                "/accounts/**", "/reports/**", "/api/**", "/offers/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form.disable()); // Disable default login form

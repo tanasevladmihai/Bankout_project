@@ -85,6 +85,17 @@
         <button class="btn-cancel" onclick="closeModal()">Cancel</button>
     </div>
 </div>
+<div id="sendFundsModal" class="modal hidden">
+    <div class="modal-content">
+        <h3>Send Money</h3>
+        <input type="text" id="recipientName" placeholder="Recipient Name" style="width: 100%; padding: 10px; margin-bottom: 10px;">
+        <input type="text" id="recipientIban" placeholder="Recipient IBAN" style="width: 100%; padding: 10px; margin-bottom: 10px;">
+        <input type="number" id="sendAmount" placeholder="Amount (€)" style="width: 100%; padding: 10px; margin-bottom: 10px;">
+
+        <button class="btn-orange" onclick="submitSendFunds()">Send</button>
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+    </div>
+</div>
 
 <script src="JS/dashboard.js"></script>
 </body>
