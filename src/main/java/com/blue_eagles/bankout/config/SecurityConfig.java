@@ -3,20 +3,26 @@ package com.blue_eagles.bankout.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity; // IMPORT THIS
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
+@EnableWebSecurity // ADD THIS ANNOTATION
 public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // Disable CSRF for easier API testing
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/index.html", "/css/**", "/js/**", "/auth/**").permitAll() // Public access
-                        .anyRequest().authenticated() // All other requests require login
+                        // Allow access to static files (css/js) and public HTML pages
+                        .requestMatchers("/", "/index.html", "/login.html", "/register.html", "/verify.html", "/dashboard.html", "/css/**", "/JS/**", "/auth/**").permitAll()
+                        .anyRequest().authenticated()
                 )
-                .httpBasic(basic -> {}); // Use Basic Auth for simplicity
+                .formLogin(form -> form.disable()); // Disable default login form
+        // .httpBasic(basic -> {}); // Ensure this is commented out or removed
+
         return http.build();
     }
 }
+

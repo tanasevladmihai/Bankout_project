@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface AccountRepository extends JpaRepository<Account, Long> {
     //Optional<User> findByEmail(String email);
-    List<Account> findbyUserId(Long userId);
+    List<Account> findByUserId(Long userId);
 }

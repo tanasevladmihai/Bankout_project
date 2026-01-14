@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bankout - 2FA Verification</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="page-header"><h1>Security Verification</h1></div>
+<div class="container">
+  <h2>Two-Factor Authentication</h2>
+  <p>We sent a code to your email. Please enter it below.</p>
+  <input type="text" id="2faCode" placeholder="Enter Code" style="padding:10px; width:50%; text-align:center; font-size:1.2rem; margin:20px 0;">
+  <br>
+  <button onclick="verify2FA()" class="btn btn-primary" style="width: 50%;">Verify</button>
+  <p id="errorMsg" style="color:red; margin-top:10px;"></p>
+</div>
+<script src="/JS/auth.js"></script>
+</body>
+</html>
