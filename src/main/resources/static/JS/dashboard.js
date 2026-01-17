@@ -133,12 +133,25 @@ async function loadGraph(period) {
 
         const data = await res.json();
 
-        // IntelliJ warns about "Rent" because it's dynamic JSON, but it exists in your Java map.
-        // We use (d.Rent || 0) to be safe if the key is missing.
+        // Extract all unique category names from the data
+        const allCategories = new Set();
+        data.forEach(d => {
+            Object.keys(d).forEach(key => {
+                if (key !== 'label') allCategories.add(key);
+            });
+        });
+
         const labels = data.map(d => d.label);
-        const rentData = data.map(d => d.Rent || 0);
-        const foodData = data.map(d => d.Food || 0);
-        const clothesData = data.map(d => d.Clothes || 0);
+
+        // Generate colors dynamically
+        const colors = ['#d16b5b', '#e0985f', '#4a90e2', '#6f935f', '#9b59b6', '#e74c3c'];
+
+        // Create datasets for each category
+        const datasets = Array.from(allCategories).map((category, index) => ({
+            label: category,
+            data: data.map(d => d[category] || 0),
+            backgroundColor: colors[index % colors.length]
+        }));
 
         if(chartInstance) chartInstance.destroy();
 
@@ -147,15 +160,18 @@ async function loadGraph(period) {
             type: 'bar',
             data: {
                 labels: labels,
-                datasets: [
-                    { label: 'Rent', data: rentData, backgroundColor: '#d16b5b' },
-                    { label: 'Food', data: foodData, backgroundColor: '#e0985f' },
-                    { label: 'Clothes', data: clothesData, backgroundColor: '#4a90e2' }
-                ]
+                datasets: datasets
             },
             options: {
-                scales: { x: { stacked: true }, y: { stacked: true } },
-                maintainAspectRatio: false
+                scales: {
+                    x: { stacked: true },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true
+                    }
+                },
+                maintainAspectRatio: false,
+                responsive: true
             }
         });
 
@@ -165,6 +181,7 @@ async function loadGraph(period) {
         console.error(error);
     }
 }
+
 
 function togglePeriodMenu() {
     const el = document.getElementById('periodDropdown');

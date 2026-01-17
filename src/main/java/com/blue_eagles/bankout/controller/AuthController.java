@@ -5,6 +5,7 @@ import com.blue_eagles.bankout.entity.User;
 import com.blue_eagles.bankout.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -18,21 +19,26 @@ public class AuthController {
     @Autowired
     private UserRepository userRepository;
 
-    // Simulating a database for 2FA codes (In production, use Redis/DB)
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     private Map<String, String> twoFactorStorage = new HashMap<>();
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            return ResponseEntity.badRequest().body("Email already registered");
+        }
+
         User user = new User();
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
         user.setEmail(request.getEmail());
         user.setPhoneNumber(request.getPhoneNumber());
-        user.setPasswordHash(request.getPassword()); // In real app, use BCrypt!
+        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         user.setIsVerified(false);
         userRepository.save(user);
 
-        // Generate mock 2FA code
         String code = String.valueOf((int)(Math.random() * 9000) + 1000);
         twoFactorStorage.put(request.getEmail(), code);
         System.out.println("2FA CODE FOR " + request.getEmail() + ": " + code);
@@ -44,8 +50,7 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         Optional<User> userOpt = userRepository.findByEmail(request.getEmail());
 
-        if (userOpt.isPresent() && userOpt.get().getPasswordHash().equals(request.getPassword())) {
-            // Generate mock 2FA code
+        if (userOpt.isPresent() && passwordEncoder.matches(request.getPassword(), userOpt.get().getPasswordHash())) {
             String code = String.valueOf((int)(Math.random() * 9000) + 1000);
             twoFactorStorage.put(request.getEmail(), code);
             System.out.println("2FA CODE FOR " + request.getEmail() + ": " + code);
@@ -59,16 +64,16 @@ public class AuthController {
     public ResponseEntity<?> verify2FA(@RequestBody TwoFactorRequest request) {
         String serverCode = twoFactorStorage.get(request.getEmail());
         if (serverCode != null && serverCode.equals(request.getCode())) {
-            // UPDATE: Mark user as verified
             Optional<User> userOpt = userRepository.findByEmail(request.getEmail());
             if (userOpt.isPresent()) {
                 User user = userOpt.get();
                 user.setIsVerified(true);
                 userRepository.save(user);
             }
-            twoFactorStorage.remove(request.getEmail()); // Clean up the code
+            twoFactorStorage.remove(request.getEmail());
             return ResponseEntity.ok("Login Successful");
         }
         return ResponseEntity.status(400).body("Invalid Code");
     }
 }
+
