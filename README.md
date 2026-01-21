@@ -57,6 +57,7 @@ user_id BIGINT REFERENCES users(id),
 account_number VARCHAR(50) UNIQUE NOT NULL,
 balance DECIMAL(15, 2) DEFAULT 0.00,
 is_open BOOLEAN DEFAULT TRUE
+account_name VARCHAR(50);
 );
 
 
