@@ -8,7 +8,12 @@
 <body>
 <div class="navbar">
     <div class="icon">☰</div>
-    <div class="icon">👤</div>
+    <div class="icon" onclick="toggleUserMenu()">👤</div>
+
+    <!-- Add User Dropdown -->
+    <div id="userDropdown" class="user-dropdown">
+        <div class="user-dropdown-item" onclick="location.href='login.html'">Log In</div>
+    </div>
 </div>
 
 <section class="hero">
@@ -28,5 +33,22 @@
 </section>
 
 <div class="footer-text">Nobody got rich spending!</div>
+
+<script>
+function toggleUserMenu() {
+    const dropdown = document.getElementById('userDropdown');
+    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+}
+
+// Close dropdown when clicking outside
+window.onclick = function(event) {
+    if (!event.target.matches('.icon')) {
+        const dropdown = document.getElementById('userDropdown');
+        if (dropdown && dropdown.style.display === 'block') {
+            dropdown.style.display = 'none';
+        }
+    }
+}
+</script>
 </body>
 </html>

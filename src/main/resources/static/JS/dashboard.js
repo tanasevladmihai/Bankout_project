@@ -3,6 +3,32 @@ let selectedAccountId = null;
 let chartInstance = null;
 let deleteMode = false;
 
+
+async function checkSession() {
+    try {
+        const res = await fetch('/auth/check');
+        if (!res.ok) {
+            // Not authenticated - redirect to login
+            window.location.href = 'login.html';
+            return false;
+        }
+        return true;
+    } catch (err) {
+        console.error("Session check failed:", err);
+        window.location.href = 'login.html';
+        return false;
+    }
+}
+
+async function logout() {
+    try {
+        await fetch('/auth/logout', { method: 'POST' });
+    } catch (err) {
+        console.error("Logout error:", err);
+    }
+    window.location.href = 'index.html';
+}
+
 // --- CAROUSEL ---
 function goToSlide(index) {
     currentSlide = index;
@@ -14,6 +40,10 @@ function goToSlide(index) {
 async function loadAccounts() {
     try {
         const res = await fetch('/accounts/my-accounts');
+        if (res.status === 401) {
+            window.location.href = 'login.html';
+            return;
+        }
         if (!res.ok) throw new Error("Failed to load accounts");
 
         const accounts = await res.json();
@@ -29,7 +59,6 @@ async function loadAccounts() {
             const div = document.createElement('div');
             div.className = 'account-item';
 
-            // Logic: If deleteMode is ON, show a Red Delete Button. Otherwise, show "•••"
             let actionHtml = deleteMode
                 ? `<div class="acc-dots" style="color:red; font-weight:bold;" onclick="deleteAccount(${acc.id})">✖ DELETE</div>`
                 : `<div class="acc-dots" onclick="openActionModal(${acc.id})">•••</div>`;
@@ -129,11 +158,13 @@ function closeModal() {
 async function loadGraph(period) {
     try {
         const res = await fetch(`/reports/spending?period=${period}`);
+        if (res.status === 401) {
+            window.location.href = 'login.html';
+            return;
+        }
         if (!res.ok) throw new Error("Failed to load graph data");
 
         const data = await res.json();
-
-        // Extract all unique category names from the data
         const allCategories = new Set();
         data.forEach(d => {
             Object.keys(d).forEach(key => {
@@ -142,11 +173,8 @@ async function loadGraph(period) {
         });
 
         const labels = data.map(d => d.label);
-
-        // Generate colors dynamically
         const colors = ['#d16b5b', '#e0985f', '#4a90e2', '#6f935f', '#9b59b6', '#e74c3c'];
 
-        // Create datasets for each category
         const datasets = Array.from(allCategories).map((category, index) => ({
             label: category,
             data: data.map(d => d[category] || 0),
@@ -158,28 +186,22 @@ async function loadGraph(period) {
         const ctx = document.getElementById('spendingChart').getContext('2d');
         chartInstance = new Chart(ctx, {
             type: 'bar',
-            data: {
-                labels: labels,
-                datasets: datasets
-            },
+            data: { labels: labels, datasets: datasets },
             options: {
                 scales: {
                     x: { stacked: true },
-                    y: {
-                        stacked: true,
-                        beginAtZero: true
-                    }
+                    y: { stacked: true, beginAtZero: true }
                 },
                 maintainAspectRatio: false,
                 responsive: true
             }
-        });
-
-        document.getElementById('periodText').innerText = period.toLowerCase() + " ﹀";
+        });document.getElementById('periodText').innerText = period.toLowerCase() + " ﹀";
         document.getElementById('periodDropdown').style.display = 'none';
+
+        // Load budget comparison
+        await loadBudgetComparison(period);
     } catch (error) {
-        console.error(error);
-    }
+        console.error(error);}
 }
 
 
@@ -189,23 +211,23 @@ function togglePeriodMenu() {
 }
 
 // --- SLIDE 3: STORES ---
-// --- SLIDE 3: STORES & OFFERS ---
 async function loadStores() {
     try {
-        // 1. Fetch All Stores (with their offers)
         const storesRes = await fetch('/api/stores');
+        if (storesRes.status === 401) {
+            window.location.href = 'login.html';
+            return;
+        }
         if (!storesRes.ok) throw new Error("Failed to load stores");
         const stores = await storesRes.json();
 
-        // 2. Fetch User's Claimed Offers (The "Exclusivity" Logic)
-        // Hardcoded user 1 for prototype
-        const myRedemptionsRes = await fetch('/offers/my-redemptions?userId=1');
+        // REMOVED: ?userId=1 parameter
+        const myRedemptionsRes = await fetch('/offers/my-redemptions');
         let myRedemptions = [];
         if (myRedemptionsRes.ok) {
             myRedemptions = await myRedemptionsRes.json();
         }
 
-        // Helper: Find if I already have a code for a specific offer ID
         const getClaimedCode = (offerId) => {
             const redemption = myRedemptions.find(r => r.offer.id === offerId);
             return redemption ? redemption.usageCode : null;
@@ -227,14 +249,12 @@ async function loadStores() {
                     const existingCode = getClaimedCode(offer.id);
 
                     if (existingCode) {
-                        // RENDER CLAIMED STATE (Greyed out, Code visible)
                         discountHTML += `
                             <div class="discount-box claimed">
                                 <div style="font-weight:bold; color:#6f935f;">CODE: ${existingCode}</div>
                                 <small>${offer.title}</small>
                             </div>`;
                     } else {
-                        // RENDER UNCLAIMED STATE (Clickable)
                         discountHTML += `
                             <div class="discount-box" id="offer-box-${offer.id}" onclick="claimOffer(${offer.id})">
                                 <div class="offer-title">${offer.title}</div>
@@ -263,20 +283,19 @@ async function loadStores() {
     }
 }
 
-// Logic to call backend and save to DB
+// REMOVED: ?userId=1 parameter
 async function claimOffer(offerId) {
     try {
-        const res = await fetch(`/offers/${offerId}/redeem?userId=1`, { method: 'POST' });
+        const res = await fetch(`/offers/${offerId}/redeem`, { method: 'POST' });
 
         if (res.ok) {
             const redemption = await res.json();
             const code = redemption.usageCode;
 
-            // Update UI instantly without reloading
             const box = document.getElementById(`offer-box-${offerId}`);
             if (box) {
                 box.classList.add('claimed');
-                box.onclick = null; // Remove click listener
+                box.onclick = null;
                 box.innerHTML = `
                     <div style="font-weight:bold; color:#6f935f;">CODE: ${code}</div>
                     <small>Discount Unlocked!</small>
@@ -291,9 +310,7 @@ async function claimOffer(offerId) {
 }
 
 function createNewAccount() {
-    // Hide the dropdown menu if it's open
     document.getElementById('accDropdown').style.display = 'none';
-    // Show the modal
     document.getElementById('createAccountModal').classList.remove('hidden');
 }
 
@@ -319,10 +336,8 @@ async function submitCreateAccount() {
         if (response.ok) {
             alert("Account created successfully!");
             closeModal();
-            // Clear inputs
             document.getElementById('newAccountName').value = '';
             document.getElementById('newAccountNumber').value = '';
-            // Refresh list
             await loadAccounts();
         } else {
             alert("Failed to create account.");
@@ -335,9 +350,7 @@ async function submitCreateAccount() {
 
 function toggleDeleteMode() {
     deleteMode = !deleteMode;
-    // Hide the dropdown
     document.getElementById('accDropdown').style.display = 'none';
-    // Refresh the list to show/hide delete buttons
     loadAccounts();
 }
 
@@ -348,7 +361,7 @@ async function deleteAccount(id) {
         const res = await fetch(`/accounts/${id}`, { method: 'DELETE' });
         if(res.ok) {
             alert("Account deleted.");
-            loadAccounts(); // Refresh list
+            loadAccounts();
         } else {
             alert("Could not delete account.");
         }
@@ -356,19 +369,203 @@ async function deleteAccount(id) {
         console.error(e);
     }
 }
-function confirmDelete() {
-    // Hide the popup first
-    closeModal();
 
-    // Use the global variable 'selectedAccountId' set by openActionModal()
+function confirmDelete() {
+    closeModal();
     if (selectedAccountId) {
         deleteAccount(selectedAccountId);
     }
 }
-// INIT
+
+function toggleUserMenu() {
+    const dropdown = document.getElementById('userDropdown');
+    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+}
+
+function initiateDeleteAccount() {
+    document.getElementById('userDropdown').style.display = 'none';
+    document.getElementById('deleteLoginModal').classList.remove('hidden');
+}
+
+async function submitDeleteLogin() {
+    const email = document.getElementById('deleteEmail').value;
+    const password = document.getElementById('deletePassword').value;
+    const errorEl = document.getElementById('deleteLoginError');
+
+    if (!email || !password) {
+        errorEl.textContent = "Please enter both email and password";
+        errorEl.style.display = 'block';
+        return;
+    }
+
+    try {
+        const response = await fetch('/auth/verify-for-deletion', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+
+        if (response.ok) {
+            // Credentials verified, show 2FA modal
+            document.getElementById('deleteLoginModal').classList.add('hidden');
+            document.getElementById('delete2FAModal').classList.remove('hidden');
+        } else {
+            errorEl.textContent = "Invalid credentials";
+            errorEl.style.display = 'block';
+        }
+    } catch (err) {
+        console.error(err);
+        errorEl.textContent = "Connection error";
+        errorEl.style.display = 'block';
+    }
+}
+
+async function confirmAccountDeletion() {
+    const code = document.getElementById('delete2FACode').value;
+    const email = document.getElementById('deleteEmail').value;
+    const errorEl = document.getElementById('delete2FAError');
+
+    if (!code || code.length !== 4) {
+        errorEl.textContent = "Please enter a valid 4-digit code";
+        errorEl.style.display = 'block';
+        return;
+    }
+
+    try {
+        const response = await fetch('/auth/delete-account', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, code })
+        });
+
+        if (response.ok) {
+            alert("Your account has been permanently deleted.");
+            window.location.href = 'index.html';
+        } else {
+            const errorText = await response.text();
+            errorEl.textContent = errorText || "Invalid 2FA code";
+            errorEl.style.display = 'block';
+        }
+    } catch (err) {
+        console.error(err);
+        errorEl.textContent = "An error occurred";
+        errorEl.style.display = 'block';
+    }
+}
+
+// --- BUDGET FUNCTIONS ---
+let currentPeriod = 'MONTHLY';
+
+async function loadBudgetComparison(period) {
+    currentPeriod = period;
+    try {
+        const res = await fetch(`/reports/current-spending?period=${period}`);
+        if (!res.ok) return;
+
+        const data = await res.json();
+        const messageEl = document.getElementById('budgetMessage');
+
+        if (!data.hasBudget) {
+            messageEl.style.display = 'none';
+            return;
+        }
+
+        const spending = data.spending.toFixed(2);
+        const budget = data.budget.toFixed(2);
+        const periodText = period === 'DAILY' ? 'today' : period === 'WEEKLY' ? 'this week' : 'this month';
+
+        if (data.exceeded) {
+            messageEl.className = 'exceeded';
+            messageEl.innerHTML = `⚠️ You've spent more than your planned €${budget} ${periodText}<br><small>Current spending: €${spending}</small>`;
+        } else {
+            messageEl.className = 'under-budget';
+            messageEl.innerHTML = `✓ You've spent less than your planned €${budget} ${periodText}<br><small>Current spending: €${spending}</small>`;
+        }
+
+        messageEl.style.display = 'block';
+    } catch (error) {
+        console.error("Budget comparison error:", error);
+    }
+}
+
+function openBudgetModal() {
+    // Set the current period in the dropdown
+    document.getElementById('budgetPeriod').value = currentPeriod;
+    document.getElementById('budgetModal').classList.remove('hidden');
+
+    // Load current budget if exists
+    loadCurrentBudget(currentPeriod);
+}
+
+async function loadCurrentBudget(period) {
+    try {
+        const res = await fetch(`/budgets/${period}`);
+        if (res.ok) {
+            const data = await res.json();
+            if (data.amount && data.amount > 0) {
+                document.getElementById('budgetAmount').value = data.amount;
+            }
+        }
+    } catch (error) {
+        console.error("Load budget error:", error);
+    }
+}
+
+async function submitBudget() {
+    const period = document.getElementById('budgetPeriod').value;
+    const amount = document.getElementById('budgetAmount').value;
+    const errorEl = document.getElementById('budgetError');
+
+    if (!amount || parseFloat(amount) <= 0) {
+        errorEl.textContent = "Please enter a valid amount";
+        errorEl.style.display = 'block';
+        return;
+    }
+
+    try {
+        const res = await fetch('/budgets/set', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ period, amount })
+        });
+
+        if (res.ok) {
+            alert("Budget set successfully!");
+            closeModal();
+            document.getElementById('budgetAmount').value = '';
+            errorEl.style.display = 'none';
+
+            // Reload budget comparison if on the same period
+            if (period === currentPeriod) {
+                await loadBudgetComparison(currentPeriod);
+            }
+        } else {
+            errorEl.textContent = "Failed to set budget";
+            errorEl.style.display = 'block';
+        }
+    } catch (error) {
+        console.error("Submit budget error:", error);
+        errorEl.textContent = "Error connecting to server";
+        errorEl.style.display = 'block';
+    }
+}
+
+// INIT - Check session first
 window.onload = async function() {
-    // We use await to ensure one finishing doesn't block the next if it fails
+    const authenticated = await checkSession();
+    if (!authenticated) return;
+
     await loadAccounts();
     await loadGraph('MONTHLY');
     await loadStores();
+
+    // Close dropdown when clicking outside
+    window.onclick = function(event) {
+        if (!event.target.closest('.user-icon')) {
+            const dropdown = document.getElementById('userDropdown');
+            if (dropdown && dropdown.style.display === 'block') {
+                dropdown.style.display = 'none';
+            }
+        }
+    }
 };

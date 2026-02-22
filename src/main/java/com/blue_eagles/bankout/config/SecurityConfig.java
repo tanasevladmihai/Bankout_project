@@ -22,13 +22,25 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        // Public pages (login, register, 2FA)
                         .requestMatchers("/", "/index.html", "/login.html", "/register.html",
-                                "/verify.html", "/dashboard.html", "/css/**", "/JS/**", "/auth/**",
-                                "/accounts/**", "/reports/**", "/api/**", "/offers/**", "/admin.html",
-                                "/api/stores/create", "/offers/create").permitAll()
+                                "/verify.html", "/css/**", "/JS/**", "/auth/**").permitAll()
+                        // Protected pages and APIs - require authentication
+                        .requestMatchers("/dashboard.html", "/admin.html").authenticated()
+                        .requestMatchers("/accounts/**", "/reports/**", "/offers/**", "/api/**", "/budgets/**").authenticated()
                         .anyRequest().authenticated()
                 )
-                .formLogin(form -> form.disable());
+                .formLogin(form -> form.disable())
+                .sessionManagement(session -> session
+                        .maximumSessions(1) // Only one session per user
+                        .maxSessionsPreventsLogin(false) // New login invalidates old session
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/auth/logout")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
+                        .logoutSuccessUrl("/login.html")
+                );
 
         return http.build();
     }

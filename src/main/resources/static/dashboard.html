@@ -9,7 +9,13 @@
 <body>
 <div class="navbar">
     <div class="menu-icon">☰</div>
-    <div class="user-icon">👤</div>
+    <div class="user-icon" onclick="toggleUserMenu()">👤</div>
+
+    <!-- Add User Dropdown -->
+    <div id="userDropdown" class="user-dropdown">
+        <div class="user-dropdown-item" onclick="logout()">Log Out</div>
+        <div class="user-dropdown-item danger" onclick="initiateDeleteAccount()">Delete Account</div>
+    </div>
 </div>
 
 <div class="dashboard-wrapper">
@@ -48,6 +54,10 @@
                 <div class="chart-box">
                     <canvas id="spendingChart"></canvas>
                 </div>
+                <!-- Budget Message -->
+                <div id="budgetMessage" style="margin-top: 15px; padding: 10px; border-radius: 5px; text-align: center; font-weight: bold; display: none;"></div>
+                <!-- Budget Button -->
+                <button class="budget-btn" onclick="openBudgetModal()">💰 Set Budget</button>
             </div>
         </div>
 
@@ -109,6 +119,72 @@
         <button class="btn-cancel" onclick="closeModal()">Cancel</button>
     </div>
 </div>
+
+<div id="deleteLoginModal" class="modal hidden">
+    <div class="modal-content">
+        <h3>Delete Account - Verify Identity</h3>
+        <p style="color: #d9534f; margin-bottom: 15px;">⚠️ This action cannot be undone!</p>
+
+        <div style="text-align: left; margin-top: 15px;">
+            <label style="font-weight: bold; display: block; margin-bottom: 5px;">Email</label>
+            <input type="email" id="deleteEmail" placeholder="Your email" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 3px;">
+        </div>
+
+        <div style="text-align: left; margin-top: 15px;">
+            <label style="font-weight: bold; display: block; margin-bottom: 5px;">Password</label>
+            <input type="password" id="deletePassword" placeholder="Your password" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 3px;">
+        </div>
+
+        <p id="deleteLoginError" style="color: red; margin-top: 10px; display: none;"></p>
+
+        <button class="btn-orange" onclick="submitDeleteLogin()" style="margin-top: 15px;">Verify & Send 2FA</button>
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+    </div>
+</div>
+<div id="delete2FAModal" class="modal hidden">
+    <div class="modal-content">
+        <h3>Delete Account - 2FA Verification</h3>
+        <p style="margin-bottom: 15px;">Enter the code sent to your phone</p>
+
+        <div style="text-align: left; margin-top: 15px;">
+            <label style="font-weight: bold; display: block; margin-bottom: 5px;">2FA Code</label>
+            <input type="text" id="delete2FACode" placeholder="Enter 4-digit code" maxlength="4" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 3px;">
+        </div>
+
+        <p id="delete2FAError" style="color: red; margin-top: 10px; display: none;"></p>
+
+        <button class="btn-orange" onclick="confirmAccountDeletion()" style="margin-top: 15px; background: #d9534f;">Permanently Delete Account</button>
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+    </div>
+</div>
+
+<!-- Budget Modal -->
+<div id="budgetModal" class="modal hidden">
+    <div class="modal-content">
+        <h3>Set Budget</h3>
+        <p style="margin-bottom: 15px;">Set your spending limit for the current period</p>
+
+        <div style="text-align: left; margin-top: 15px;">
+            <label style="font-weight: bold; display: block; margin-bottom: 5px;">Period</label>
+            <select id="budgetPeriod" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 3px;">
+                <option value="DAILY">Daily</option>
+                <option value="WEEKLY">Weekly</option>
+                <option value="MONTHLY" selected>Monthly</option>
+            </select>
+        </div>
+
+        <div style="text-align: left; margin-top: 15px;">
+            <label style="font-weight: bold; display: block; margin-bottom: 5px;">Budget Amount (€)</label>
+            <input type="number" id="budgetAmount" placeholder="Enter amount" step="0.01" min="0" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 3px;">
+        </div>
+
+        <p id="budgetError" style="color: red; margin-top: 10px; display: none;"></p>
+
+        <button class="btn-orange" onclick="submitBudget()" style="margin-top: 15px;">Save Budget</button>
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+    </div>
+</div>
+
 <script src="JS/dashboard.js"></script>
 </body>
 </html>

@@ -2,23 +2,29 @@ package com.blue_eagles.bankout.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import java.util.Date;
+import java.util.List;
 
 @Entity
 @Data
-@Table(name = "users") // "user" is a reserved keyword in Postgres
+@Table(name = "users")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true, nullable = false)
+    private String email;
+
+    @Column(nullable = false)
+    private String passwordHash;
+
     private String firstName;
     private String lastName;
-
-    @Column(unique = true)
-    private String email;
     private String phoneNumber;
-    private String passwordHash;
+
+    @Column(nullable = false)
     private Boolean isVerified = false;
-    private Date registrationDate = new Date();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Account> accounts;
 }

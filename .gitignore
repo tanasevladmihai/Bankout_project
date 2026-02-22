@@ -1,4 +1,12 @@
 HELP.md
+BUDGET_FEATURE_IMPLEMENTATION.md
+build-with-intellij-jdk.md
+COMPILATION_STATUS.md
+FIX_COMPILATION_ERRORS.md
+FIX_LOMBOK_METHODS.md
+QUICK_START_BUDGET.md
+USER_ENTITY_UPDATE_SUMMARY.md
+
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
@@ -12,6 +20,7 @@ target/
 .settings
 .springBeans
 .sts4-cache
+.env
 
 ### IntelliJ IDEA ###
 .idea

@@ -1,10 +1,14 @@
 package com.blue_eagles.bankout.service;
 
 import com.blue_eagles.bankout.entity.DiscountOffer;
+import com.blue_eagles.bankout.entity.User;
 import com.blue_eagles.bankout.entity.UserDiscountObtained;
 import com.blue_eagles.bankout.repository.OfferRepository;
 import com.blue_eagles.bankout.repository.UserDiscountObtainedRepository;
+import com.blue_eagles.bankout.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,31 +25,39 @@ public class OfferService {
     @Autowired
     private UserDiscountObtainedRepository redemptionRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    private Long getCurrentUserId() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return user.getId();
+    }
+
     public List<DiscountOffer> getAllOffers() {
         return offerRepository.findAll();
     }
 
-    // Get all codes claimed by this specific user
-    public List<UserDiscountObtained> getUserRedemptions(Long userId) {
-        return redemptionRepository.findByUserId(userId);
+    public List<UserDiscountObtained> getUserRedemptions() {
+        return redemptionRepository.findByUserId(getCurrentUserId());
     }
 
     @Transactional
-    public UserDiscountObtained redeemOffer(Long userId, Long offerId) {
-        // 1. Check if user already claimed this specific offer
+    public UserDiscountObtained redeemOffer(Long offerId) {
+        Long userId = getCurrentUserId();
+
         Optional<UserDiscountObtained> existing = redemptionRepository.findByUserIdAndOfferId(userId, offerId);
         if (existing.isPresent()) {
-            return existing.get(); // Return the existing code, don't generate a new one
+            return existing.get();
         }
 
-        // 2. Validate Offer
         DiscountOffer offer = offerRepository.findById(offerId)
                 .orElseThrow(() -> new RuntimeException("Offer not found"));
 
-        // 3. Generate Code
         String uniqueCode = "BNK-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
-        // 4. Save
         UserDiscountObtained redemption = new UserDiscountObtained();
         redemption.setUserId(userId);
         redemption.setOffer(offer);

@@ -41,3 +41,85 @@ body { margin: 0; font-family: 'Arial', sans-serif; background: #fff; overflow: 
 .btn-orange { background: orange; color: white; border: none; padding: 10px; width: 100%; margin: 5px 0; cursor: pointer; }
 .btn-blue { background: #4a90e2; color: white; border: none; padding: 10px; width: 100%; margin: 5px 0; cursor: pointer; }
 .btn-cancel { background: #ccc; border: none; padding: 10px; width: 100%; margin: 5px 0; cursor: pointer; }
+
+/* User Dropdown Menu */
+.user-dropdown {
+    display: none;
+    position: absolute;
+    top: 60px;
+    right: 20px;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    z-index: 1000;
+    min-width: 180px;
+}
+
+.user-dropdown-item {
+    padding: 12px 20px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    transition: background 0.2s;
+}
+
+.user-dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.user-dropdown-item:hover {
+    background: #f5f5f5;
+}
+
+.user-dropdown-item.danger {
+    color: #d9534f;
+}
+
+.user-dropdown-item.danger:hover {
+    background: #fde8e8;
+}
+
+/* Budget Button */
+.budget-btn {
+    position: absolute;
+    bottom: 15px;
+    left: 15px;
+    background: #6f935f;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s;
+}
+
+.budget-btn:hover {
+    background: #5a7a4d;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.budget-btn:active {
+    transform: translateY(0);
+}
+
+/* Budget Message Styles */
+#budgetMessage.exceeded {
+    background: #fde8e8;
+    color: #d9534f;
+    border: 2px solid #d9534f;
+}
+
+#budgetMessage.under-budget {
+    background: #e8f5e9;
+    color: #6f935f;
+    border: 2px solid #6f935f;
+}
+
+/* Make report-card relative for button positioning */
+.report-card {
+    position: relative;
+}

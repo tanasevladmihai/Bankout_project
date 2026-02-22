@@ -25,18 +25,16 @@ public class OfferController {
         return offerService.getAllOffers();
     }
 
-    // NEW: Get offers redeemed by the specific user
     @GetMapping("/my-redemptions")
-    public List<UserDiscountObtained> getMyRedemptions(@RequestParam Long userId) {
-        return offerService.getUserRedemptions(userId);
+    public List<UserDiscountObtained> getMyRedemptions() {
+        return offerService.getUserRedemptions();
     }
 
     @PostMapping("/{id}/redeem")
-    public UserDiscountObtained redeemOffer(@PathVariable Long id, @RequestParam Long userId) {
-        return offerService.redeemOffer(userId, id);
+    public UserDiscountObtained redeemOffer(@PathVariable Long id) {
+        return offerService.redeemOffer(id);
     }
 
-    // (Keep your existing create method here)
     @PostMapping("/create")
     public DiscountOffer createOffer(@RequestBody OfferRequest req) {
         DiscountOffer offer = new DiscountOffer();

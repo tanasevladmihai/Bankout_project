@@ -6,22 +6,21 @@ import java.math.BigDecimal;
 
 @Entity
 @Data
+@Table(name = "budgets")
 public class Budget {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
 
-    @ManyToOne
-    @JoinColumn(name = "category_id")
-    private Category category;
+    @Column(name = "period", nullable = false)
+    private String period; // 'DAILY', 'WEEKLY', 'MONTHLY'
 
-    @Column(name = "limit_amount")
-    private BigDecimal limitAmount;
+    @Column(name = "amount", nullable = false)
+    private BigDecimal amount;
 
-    @Column(name = "period_type")
-    private String periodType; // 'WEEKLY', 'MONTHLY'
+    @Column(name = "category_id")
+    private Long categoryId; // Optional: for future category-specific budgets
 }
