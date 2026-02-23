@@ -43,6 +43,9 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
+      - name: Maven Wrapper Executable
+        run: chmod +x mvnw
+
       - name: Build with Maven
         env:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/bankout_test_db
